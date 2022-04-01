@@ -7,8 +7,6 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         LexicalAnalyzer yy;
-        Arbre a = new Arbre("+",new Arbre(),new Arbre("2"));
-        System.out.println(a);
         if (args.length > 0)
             yy = new LexicalAnalyzer(new FileReader(args[0]));
         else
