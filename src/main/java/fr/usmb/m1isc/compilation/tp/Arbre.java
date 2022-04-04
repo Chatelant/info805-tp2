@@ -25,6 +25,30 @@ public class Arbre {
     public Arbre() {
     }
 
+    public Operator getRacine() {
+        return racine;
+    }
+
+    public void setRacine(Operator racine) {
+        this.racine = racine;
+    }
+
+    public Arbre getFilsGauche() {
+        return filsGauche;
+    }
+
+    public void setFilsGauche(Arbre filsGauche) {
+        this.filsGauche = filsGauche;
+    }
+
+    public Arbre getFilsDroit() {
+        return filsDroit;
+    }
+
+    public void setFilsDroit(Arbre filsDroit) {
+        this.filsDroit = filsDroit;
+    }
+
     public String toString() {
         if (racine != null) {
             if (filsDroit != null & filsGauche != null)
