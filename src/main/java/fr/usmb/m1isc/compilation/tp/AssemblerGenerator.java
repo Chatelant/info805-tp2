@@ -31,15 +31,21 @@ public class AssemblerGenerator {
         if (data == null)
             return "";
 
+        // Création de la String résultat
         String tmp = getCodeSegment(data.getFilsGauche()) + getCodeSegment(data.getFilsDroit());
 
+        // S'il s'agit d'une affectation
         if (data.getRacine() == Operator.LET) {
+            // Le contenu du fils droit est récupéré s'il s'agit d'une feuille
             if (data.getFilsDroit().getClass().getSimpleName().equals("Feuille")) {
                 tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
             } else {
+                // Sinon si le fils n'est pas une feuille, on s'assure que le résultat n'a pas été push pour
+                // pouvoir l'utiliser dans l'affectation à venir
                 String[] lines = tmp.split("\n");
                 boolean isPush = lines[lines.length - 1].contains("push");
 
+                // On recompose la string sans le "push"
                 if (isPush) {
                     tmp = "";
                     for (int i = 0; i < lines.length - 1; i++) {
@@ -47,11 +53,13 @@ public class AssemblerGenerator {
                     }
                 }
             }
+            // Le contenu du fils gauche est récupéré s'il s'agit d'une feuille
             if (data.getFilsGauche().getClass().getSimpleName().equals("Feuille")) {
                 tmp += String.format("    mov %s, eax\n", data.getFilsGauche());
             }
         }
 
+        // S'il s'agit d'une des opérations suivantes : "+", "-", "/", "*"
         if (data.getRacine() == Operator.PLUS || data.getRacine() == Operator.MOINS ||
             data.getRacine() == Operator.MUL || data.getRacine() == Operator.DIV) {
 
@@ -59,15 +67,18 @@ public class AssemblerGenerator {
             String[] lines = tmp.split("\n");
             boolean isPush = lines[lines.length - 1].contains("push");
 
+            // Le contenu du fils gauche est récupéré s'il s'agit d'une feuille ou s'il n'a pas déjà été push sur la pile
             if (data.getFilsGauche().getClass().getSimpleName().equals("Feuille") && !isPush) {
                 tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
                 tmp += "    push eax\n";
             }
+            // Le contenu du fils droit est récupéré s'il s'agit d'une feuille
             if (data.getFilsDroit().getClass().getSimpleName().equals("Feuille")) {
                 tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
             }
 
-
+            // Pour chaque opération, on récupère sur la pile la valeur ebx pour effectuer le calcul.
+            // Le calcul est stocké dans eax
             if (data.getRacine() == Operator.PLUS) {
                 tmp += "    pop ebx\n";
                 tmp += "    add eax, ebx\n";
