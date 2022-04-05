@@ -12,13 +12,27 @@ public class AssemblerGenerator {
         generate();
     }
 
+    public String cleanDataSegment(String data) {
+        String[] lines = data.split("\n");
+        String finalData = "";
+
+        for (int i = 0; i < lines.length; i++) {
+            if (!finalData.contains(lines[i])) finalData += (lines[i] + "\n");
+        }
+
+        return finalData;
+    }
+
     public String getDataSegment(Arbre stack) {
+        String tmp = "";
         if (stack == null)
             return "";
-        if (stack.getRacine() == Operator.LET)
-            return "    " + stack.getFilsGauche().toString() + " DD\n" + getDataSegment(stack.getFilsGauche()) + getDataSegment(stack.getFilsDroit());
+        if (stack.getRacine() == Operator.LET) {
+            tmp = ("    " + stack.getFilsGauche().toString() + " DD\n");
+        }
 
-        return getDataSegment(stack.getFilsGauche()) + getDataSegment(stack.getFilsDroit());
+        tmp += getDataSegment(stack.getFilsGauche()) + getDataSegment(stack.getFilsDroit());
+        return cleanDataSegment(tmp);
     }
 
     public void printDataSegment(String data) {
@@ -27,12 +41,30 @@ public class AssemblerGenerator {
         System.out.println("DATA ENDS");
     }
 
+    // TODO : clean code
     public String getCodeSegment(Arbre data) {
         if (data == null)
             return "";
 
         // Création de la String résultat
-        String tmp = getCodeSegment(data.getFilsGauche()) + getCodeSegment(data.getFilsDroit());
+        String tmp = "";
+
+        // TODO : S'il s'agit d'un NOT, IF ?
+
+        // S'il s'agit d'une boucle while
+        if (data.getRacine() == Operator.WHILE) {
+            tmp += "debut_while_1:\n"; // TODO : voir si le 1 doit s'incrémenter à chaque while
+            tmp += getCodeSegment(data.getFilsGauche()); // Condition du while
+            tmp += "    jz sortie_while_1\n";
+            tmp += getCodeSegment(data.getFilsDroit()); // Contenu de la boucle
+            tmp += "    jmp debut_while_1\n";
+            tmp += "sortie_while_1:\n";
+        } else {
+            tmp = getCodeSegment(data.getFilsGauche()) + getCodeSegment(data.getFilsDroit());
+        }
+
+        // S'il s'agit d'un input
+        if (data.getRacine() == Operator.INPUT) tmp += "    in eax\n";
 
         // S'il s'agit d'une affectation
         if (data.getRacine() == Operator.LET) {
@@ -94,6 +126,59 @@ public class AssemblerGenerator {
                 tmp += "    mov eax, ebx\n";
             }
             tmp += "    push eax\n";
+        }
+
+        if (data.getRacine() == Operator.MOD) {
+            // Check la derniere commande
+            String[] lines = tmp.split("\n");
+            boolean isPush = lines[lines.length - 1].contains("push");
+
+            // Le contenu du fils gauche est récupéré s'il s'agit d'une feuille ou s'il n'a pas déjà été push sur la pile
+            if (data.getFilsDroit().getClass().getSimpleName().equals("Feuille") && !isPush) {
+                tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
+                tmp += "    push eax\n";
+            }
+            // Le contenu du fils droit est récupéré s'il s'agit d'une feuille
+            if (data.getFilsGauche().getClass().getSimpleName().equals("Feuille")) {
+                tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
+            }
+
+            tmp += "    pop ebx\n";
+            tmp += "    mov ecx, eax\n";
+            tmp += "    div ecx, ebx\n";
+            tmp += "    mul ecx, ebx\n";
+            tmp += "    sub eax, ecx\n";
+        }
+
+        // S'il s'agit d'une comparaison : "<" "<="
+        if (data.getRacine() == Operator.GT || data.getRacine() == Operator.GTE) {
+            tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
+            tmp += "    push eax\n";
+            tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
+            tmp += "    pop ebx\n";
+            tmp += "    sub eax, ebx\n";
+
+            if (data.getRacine() == Operator.GT) {
+                tmp += "    jle faux_gt_1\n"; // TODO : voir si le 1 doit s'incrémenter
+                tmp += "    mov eax, 1\n";
+                tmp += "    jmp sortie_gt_1\n";
+                tmp += "faux_gt_1:\n";
+                tmp += "    mov eax, 0\n";
+                tmp += "sortie_gt_1:\n";
+            } else {
+                tmp += "    jle faux_gte_1\n"; // TODO : voir si le 1 doit s'incrémenter
+                tmp += "    mov eax, 1\n";
+                tmp += "    jmp sortie_gte_1\n";
+                tmp += "faux_gte_1:\n";
+                tmp += "    mov eax, 0\n";
+                tmp += "sortie_gte_1:\n";
+            }
+        }
+
+        // S'il s'agit d'un output
+        if (data.getRacine() == Operator.OUTPUT) {
+            tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
+            tmp += "    out eax\n";
         }
 
         return tmp;
