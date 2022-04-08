@@ -15,7 +15,7 @@ Enfin, nous écrivons le résultat dans le fichier __"test.asm"__ généré à l
 Pour tester les résultats des exemples ci-dessous, utilisez dans votre console : `java -jar vm-0.9.jar test.asm`
 
 
-#Exemples de génération de code
+# Exemples de génération de code
 
 ## Exemple 1
 
@@ -49,7 +49,7 @@ CODE ENDS
 ```
 
 
-##Exemple 2
+## Exemple 2
 
 Programme :
 ```
@@ -106,7 +106,7 @@ CODE ENDS
 ```
 
 
-##Exemple 3: un compteur
+## Exemple 3: un compteur
 
 Programme : compte de b à a avec un pas de c.
 ```
@@ -162,7 +162,7 @@ CODE ENDS
 ```
 
 
-##Exemple 4: calcul d'un pourcentage
+## Exemple 4: calcul d'un pourcentage
 
 Programme : calcul le pourcentage de a par rapport à b.
 
