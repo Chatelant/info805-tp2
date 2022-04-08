@@ -1,13 +1,15 @@
 package fr.usmb.m1isc.compilation.tp;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class AssemblerGenerator {
     private Arbre stack;
+    private String data_segment;
+    private String code_segment;
 
-    public AssemblerGenerator(Arbre stack) {
+    public AssemblerGenerator(Arbre stack) throws IOException {
         this.stack = stack;
         generate();
     }
@@ -51,7 +53,7 @@ public class AssemblerGenerator {
 
         // TODO : S'il s'agit d'un NOT, IF ?
 
-        // S'il s'agit d'une boucle while ou une condition if
+        // S'il s'agit d'une boucle while
         if (data.getRacine() == Operator.WHILE) {
             tmp += "debut_while_1:\n"; // TODO : voir si le 1 doit s'incrémenter à chaque while
             tmp += getCodeSegment(data.getFilsGauche()); // Condition du while
@@ -93,7 +95,7 @@ public class AssemblerGenerator {
 
         // S'il s'agit d'une des opérations suivantes : "+", "-", "/", "*"
         if (data.getRacine() == Operator.PLUS || data.getRacine() == Operator.MOINS ||
-            data.getRacine() == Operator.MUL || data.getRacine() == Operator.DIV) {
+                data.getRacine() == Operator.MUL || data.getRacine() == Operator.DIV) {
 
             // Check la derniere commande
             String[] lines = tmp.split("\n");
@@ -190,11 +192,48 @@ public class AssemblerGenerator {
         System.out.println("CODE ENDS");
     }
 
-    public String generate() {
+    public void generate() throws IOException {
         String dataSegment = getDataSegment(stack);
+        this.setData_segment(dataSegment);
         printDataSegment(dataSegment);
         String codeSegment = getCodeSegment(stack);
+        this.setCode_segment(codeSegment);
         printCodeSegment(codeSegment);
-        return "Test";
+        this.saveAsFile();
+    }
+
+    public String writeCodeSegment() {
+        return "CODE SEGMENT\n" + code_segment + "CODE ENDS\n";
+    }
+
+    public String writeDataSegment() {
+        return "DATA SEGMENT\n" + data_segment + "DATA ENDS\n";
+    }
+
+    public void saveAsFile() throws IOException {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("test.asm"));
+            String tmp = writeDataSegment() + writeCodeSegment();
+            writer.write(tmp);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getData_segment() {
+        return data_segment;
+    }
+
+    public void setData_segment(String data_segment) {
+        this.data_segment = data_segment;
+    }
+
+    public String getCode_segment() {
+        return code_segment;
+    }
+
+    public void setCode_segment(String code_segment) {
+        this.code_segment = code_segment;
     }
 }
