@@ -1,10 +1,10 @@
 # Compte Rendu : TP Compilation - Génération d'arbres abstraits
-
-L'objectif du TP est d'utiliser les outils JFlex et CUP pour générer des arbres abstraits correspondant à un sous ensemble du langage **λ-ada**.
 __Binôme__ : Antoine Chatel et Elodie Deflon
 
+L'objectif du TP est d'utiliser les outils JFlex et CUP pour générer des arbres abstraits correspondant à un sous ensemble du langage **λ-ada**.
+
 # Rapport
-Dans __AnalyseurSyntaxique__ et __AnalyseurLexical__, nous identifions les différents morceaux des programmes et utilisons des __arbres__.
+Dans __AnalyseurSyntaxique__ et __AnalyseurLexical__, nous identifions les différents morceaux des programmes et à partir de ceux-ci nous créons des __arbres imbriqués__ qui nous permettront de représenter l'arborescence du programme.
 La racine de chaque arbre contient un type __"Operator"__ qui nous permets d'identifier les opérations effectuées sur les sous ensembles.
 
 La méthode __"generate()"__ dans __"AssemblerGenerator.java"__ nous permets de générer le code assembleur en parcourant l'arbre résultat de manière __récursive__.
@@ -48,7 +48,9 @@ CODE SEGMENT
 CODE ENDS
 ```
 
+
 ##Exemple 2
+
 Programme :
 ```
 let a = input;
@@ -102,6 +104,7 @@ sortie_while_1:
 	out eax
 CODE ENDS
 ```
+
 
 ##Exemple 3: un compteur
 
@@ -157,6 +160,7 @@ sortie_gt_1:
 sortie_while_1:
 CODE ENDS
 ```
+
 
 ##Exemple 4: calcul d'un pourcentage
 
