@@ -28,7 +28,7 @@ public class AssemblerGenerator {
         if (stack == null)
             return "";
         if (stack.getRacine() == Operator.LET) {
-            tmp = ("    " + stack.getFilsGauche().toString() + " DD\n");
+            tmp = ("\t" + stack.getFilsGauche().toString() + " DD\n");
         }
 
         tmp += getDataSegment(stack.getFilsGauche()) + getDataSegment(stack.getFilsDroit());
@@ -51,26 +51,26 @@ public class AssemblerGenerator {
 
         // TODO : S'il s'agit d'un NOT, IF ?
 
-        // S'il s'agit d'une boucle while
+        // S'il s'agit d'une boucle while ou une condition if
         if (data.getRacine() == Operator.WHILE) {
             tmp += "debut_while_1:\n"; // TODO : voir si le 1 doit s'incrémenter à chaque while
             tmp += getCodeSegment(data.getFilsGauche()); // Condition du while
-            tmp += "    jz sortie_while_1\n";
+            tmp += "\tjz sortie_while_1\n";
             tmp += getCodeSegment(data.getFilsDroit()); // Contenu de la boucle
-            tmp += "    jmp debut_while_1\n";
+            tmp += "\tjmp debut_while_1\n";
             tmp += "sortie_while_1:\n";
         } else {
             tmp = getCodeSegment(data.getFilsGauche()) + getCodeSegment(data.getFilsDroit());
         }
 
         // S'il s'agit d'un input
-        if (data.getRacine() == Operator.INPUT) tmp += "    in eax\n";
+        if (data.getRacine() == Operator.INPUT) tmp += "\tin eax\n";
 
         // S'il s'agit d'une affectation
         if (data.getRacine() == Operator.LET) {
             // Le contenu du fils droit est récupéré s'il s'agit d'une feuille
             if (data.getFilsDroit().getClass().getSimpleName().equals("Feuille")) {
-                tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
+                tmp += String.format("\tmov eax, %s\n", data.getFilsDroit());
             } else {
                 // Sinon si le fils n'est pas une feuille, on s'assure que le résultat n'a pas été push pour
                 // pouvoir l'utiliser dans l'affectation à venir
@@ -87,7 +87,7 @@ public class AssemblerGenerator {
             }
             // Le contenu du fils gauche est récupéré s'il s'agit d'une feuille
             if (data.getFilsGauche().getClass().getSimpleName().equals("Feuille")) {
-                tmp += String.format("    mov %s, eax\n", data.getFilsGauche());
+                tmp += String.format("\tmov %s, eax\n", data.getFilsGauche());
             }
         }
 
@@ -101,31 +101,31 @@ public class AssemblerGenerator {
 
             // Le contenu du fils gauche est récupéré s'il s'agit d'une feuille ou s'il n'a pas déjà été push sur la pile
             if (data.getFilsGauche().getClass().getSimpleName().equals("Feuille") && !isPush) {
-                tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
-                tmp += "    push eax\n";
+                tmp += String.format("\tmov eax, %s\n", data.getFilsGauche());
+                tmp += "\tpush eax\n";
             }
             // Le contenu du fils droit est récupéré s'il s'agit d'une feuille
             if (data.getFilsDroit().getClass().getSimpleName().equals("Feuille")) {
-                tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
+                tmp += String.format("\tmov eax, %s\n", data.getFilsDroit());
             }
 
             // Pour chaque opération, on récupère sur la pile la valeur ebx pour effectuer le calcul.
             // Le calcul est stocké dans eax
             if (data.getRacine() == Operator.PLUS) {
-                tmp += "    pop ebx\n";
-                tmp += "    add eax, ebx\n";
+                tmp += "\tpop ebx\n";
+                tmp += "\tadd eax, ebx\n";
             } else if (data.getRacine() == Operator.MOINS) {
-                tmp += "    pop ebx\n";
-                tmp += "    sub eax, ebx\n";
+                tmp += "\tpop ebx\n";
+                tmp += "\tsub eax, ebx\n";
             } else if (data.getRacine() == Operator.MUL) {
-                tmp += "    pop ebx\n";
-                tmp += "    mul eax, ebx\n";
+                tmp += "\tpop ebx\n";
+                tmp += "\tmul eax, ebx\n";
             } else if (data.getRacine() == Operator.DIV) {
-                tmp += "    pop ebx\n";
-                tmp += "    div ebx, eax\n";
-                tmp += "    mov eax, ebx\n";
+                tmp += "\tpop ebx\n";
+                tmp += "\tdiv ebx, eax\n";
+                tmp += "\tmov eax, ebx\n";
             }
-            tmp += "    push eax\n";
+            tmp += "\tpush eax\n";
         }
 
         if (data.getRacine() == Operator.MOD) {
@@ -135,50 +135,50 @@ public class AssemblerGenerator {
 
             // Le contenu du fils gauche est récupéré s'il s'agit d'une feuille ou s'il n'a pas déjà été push sur la pile
             if (data.getFilsDroit().getClass().getSimpleName().equals("Feuille") && !isPush) {
-                tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
-                tmp += "    push eax\n";
+                tmp += String.format("\tmov eax, %s\n", data.getFilsDroit());
+                tmp += "\tpush eax\n";
             }
             // Le contenu du fils droit est récupéré s'il s'agit d'une feuille
             if (data.getFilsGauche().getClass().getSimpleName().equals("Feuille")) {
-                tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
+                tmp += String.format("\tmov eax, %s\n", data.getFilsGauche());
             }
 
-            tmp += "    pop ebx\n";
-            tmp += "    mov ecx, eax\n";
-            tmp += "    div ecx, ebx\n";
-            tmp += "    mul ecx, ebx\n";
-            tmp += "    sub eax, ecx\n";
+            tmp += "\tpop ebx\n";
+            tmp += "\tmov ecx, eax\n";
+            tmp += "\tdiv ecx, ebx\n";
+            tmp += "\tmul ecx, ebx\n";
+            tmp += "\tsub eax, ecx\n";
         }
 
         // S'il s'agit d'une comparaison : "<" "<="
         if (data.getRacine() == Operator.GT || data.getRacine() == Operator.GTE) {
-            tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
-            tmp += "    push eax\n";
-            tmp += String.format("    mov eax, %s\n", data.getFilsDroit());
-            tmp += "    pop ebx\n";
-            tmp += "    sub eax, ebx\n";
+            tmp += String.format("\tmov eax, %s\n", data.getFilsGauche());
+            tmp += "\tpush eax\n";
+            tmp += String.format("\tmov eax, %s\n", data.getFilsDroit());
+            tmp += "\tpop ebx\n";
+            tmp += "\tsub eax, ebx\n";
 
             if (data.getRacine() == Operator.GT) {
-                tmp += "    jle faux_gt_1\n"; // TODO : voir si le 1 doit s'incrémenter
-                tmp += "    mov eax, 1\n";
-                tmp += "    jmp sortie_gt_1\n";
+                tmp += "\tjle faux_gt_1\n"; // TODO : voir si le 1 doit s'incrémenter
+                tmp += "\tmov eax, 1\n";
+                tmp += "\tjmp sortie_gt_1\n";
                 tmp += "faux_gt_1:\n";
-                tmp += "    mov eax, 0\n";
+                tmp += "\tmov eax, 0\n";
                 tmp += "sortie_gt_1:\n";
             } else {
-                tmp += "    jle faux_gte_1\n"; // TODO : voir si le 1 doit s'incrémenter
-                tmp += "    mov eax, 1\n";
-                tmp += "    jmp sortie_gte_1\n";
+                tmp += "\tjle faux_gte_1\n"; // TODO : voir si le 1 doit s'incrémenter
+                tmp += "\tmov eax, 1\n";
+                tmp += "\tjmp sortie_gte_1\n";
                 tmp += "faux_gte_1:\n";
-                tmp += "    mov eax, 0\n";
+                tmp += "\tmov eax, 0\n";
                 tmp += "sortie_gte_1:\n";
             }
         }
 
         // S'il s'agit d'un output
         if (data.getRacine() == Operator.OUTPUT) {
-            tmp += String.format("    mov eax, %s\n", data.getFilsGauche());
-            tmp += "    out eax\n";
+            tmp += String.format("\tmov eax, %s\n", data.getFilsGauche());
+            tmp += "\tout eax\n";
         }
 
         return tmp;
