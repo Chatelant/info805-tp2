@@ -106,7 +106,7 @@ CODE ENDS
 ```
 
 
-## Exemple 3: un compteur
+## Exemple 3 : un compteur
 
 Programme : compte de b à a avec un pas de c.
 ```
@@ -162,9 +162,9 @@ CODE ENDS
 ```
 
 
-## Exemple 4: calcul d'un pourcentage
+## Exemple 4 : calcul d'un pourcentage
 
-Programme : calcul le pourcentage de a par rapport à b.
+Programme : calcule le pourcentage de a par rapport à b.
 
 ```
 let v = input; // valeur
