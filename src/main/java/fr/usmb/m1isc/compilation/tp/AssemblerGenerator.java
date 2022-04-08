@@ -43,15 +43,12 @@ public class AssemblerGenerator {
         System.out.println("DATA ENDS");
     }
 
-    // TODO : clean code
     public String getCodeSegment(Arbre data) {
         if (data == null)
             return "";
 
         // Création de la String résultat
         String tmp = "";
-
-        // TODO : S'il s'agit d'un NOT, IF ?
 
         // S'il s'agit d'une boucle while
         if (data.getRacine() == Operator.WHILE) {

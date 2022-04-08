@@ -1,69 +1,55 @@
-# TP Compilation : Génération d'arbres abstraits
+# Compte Rendu : TP Compilation - Génération d'arbres abstraits
 
 L'objectif du TP est d'utiliser les outils JFlex et CUP pour générer des arbres abstraits correspondant à un sous ensemble du langage **λ-ada**.
+__Binôme__ : Antoine Chatel et Elodie Deflon
 
-## Exercice 1 :
+# Rapport
+Dans __AnalyseurSyntaxique__ et __AnalyseurLexical__, nous identifions les différents morceaux des programmes et utilisons des __arbres__.
+La racine de chaque arbre contient un type __"Operator"__ qui nous permets d'identifier les opérations effectuées sur les sous ensembles.
 
-Utiliser JFlex et CUP pour générer l'arbre abstrait correspondant à l'analyse d'expressions arithmétiques sur les nombres entiers.
+La méthode __"generate()"__ dans __"AssemblerGenerator.java"__ nous permets de générer le code assembleur en parcourant l'arbre résultat de manière __récursive__.
 
-Exemple de fichier source pour l'analyseur :
+Le code assembleur est généré en 2 parcours récursifs : nous générons la partie __"DATA SEGMENT"__ en premier puis la partie __"CODE SEGMENT"__.
+Enfin, nous écrivons le résultat dans le fichier __"test.asm"__ généré à la racine du projet.
 
-```
-12 + 5;             /* ceci est un commentaire */
-10 / 2 - 3;  99;    /* le point-virgule sépare les expressions à évaluer */
-/* l'évaluation donne toujours un nombre entier */
-((30 * 1) + 4) mod 2; /* opérateurs binaires */
-3 * -4;             /* attention à l'opérateur unaire */
+Pour tester les résultats des exemples ci-dessous, utilisez dans votre console : `java -jar vm-0.9.jar test.asm`
 
-let prixHt = 200;   /* une variable prend valeur lors de sa déclaration */
-let prixTtc =  prixHt * 119 / 100;
-prixTtc + 100.
-```
 
-L'expression
+#Exemples de génération de code
 
+## Exemple 1
+
+Programme :
 ```
 let prixTtc =  prixHt * 119 / 100;
 prixTtc + 100
 ```
-pourra donner, par exemple, l'arbre suivant :
 
-![exemple arbre abtrait](arbre.png "arbre abstrait")
-
-Une fois l'arbre généré, récupérez le dans le programme pricipal et affichez le, par exemple sous la forme d'une expression préfixée parenthésée :
-`(; (LET prixTtc (/ (* prixHt 119) 100)) (+ prixTtc 100))`
-
-## Exercice 2 :
-
-Compléter la grammaire précédente en y ajoutant les opérateurs booléens, ceux de comparaison, la boucle et la conditionnelle, afin d'obtenir un sous-ensemble du langage **λ-ada** un peu plus complet.
-
-Grammaire abstraite du sous-ensemble de λ-ada correspondant :
-
+Résultat :
 ```
-expression → expression ';' expression  
-expression → LET IDENT '=' expression
-expression → IF expression THEN expression ELSE expression
-expression → WHILE expression DO expression
-expression → '-' expression
-expression → expression '+' expression
-expression → expression '-' expression
-expression → expression '*' expression
-expression → expression '/' expression
-expression → expression MOD expression
-expression → expression '<' expression
-expression → expression '<=' expression
-expression → expression '=' expression
-expression → expression AND expression
-expression → expression OR expression
-expression → NOT expression 
-expression → OUTPUT expression 
-expression → INPUT | NIL | IDENT | ENTIER
+DATA SEGMENT
+	prixHt DD
+	prixTtc DD
+DATA ENDS
+CODE SEGMENT
+	mov eax, 200
+	mov prixHt, eax
+	mov eax, prixHt
+	push eax
+	mov eax, 119
+	pop ebx
+	mul eax, ebx
+	push eax
+	mov eax, 100
+	pop ebx
+	div ebx, eax
+	mov eax, ebx
+	mov prixTtc, eax
+CODE ENDS
 ```
 
-Le langage obtenu est tout de suite un peu plus intéressant et permet de programmer plus de choses.
-
-Exemple de programme possible pour le sous-ensemble de λ-ada considéré ici : calcul de PGCD.
-
+##Exemple 2
+Programme :
 ```
 let a = input;
 let b = input;
@@ -71,3 +57,144 @@ while (0 < b)
 do (let aux=(a mod b); let a=b; let b=aux );
 output a .
 ```
+
+Résultat :
+```
+DATA SEGMENT
+	b DD
+	a DD
+	aux DD
+DATA ENDS
+CODE SEGMENT
+	in eax
+	mov a, eax
+	in eax
+	mov b, eax
+debut_while_1:
+	mov eax, 0
+	push eax
+	mov eax, b
+	pop ebx
+	sub eax,ebx
+	jle faux_gt_1
+	mov eax,1
+	jmp sortie_gt_1
+faux_gt_1:
+	mov eax,0
+sortie_gt_1:
+	jz sortie_while_1
+	mov eax, b
+	push eax
+	mov eax, a
+	pop ebx
+	mov ecx,eax
+	div ecx,ebx
+	mul ecx,ebx
+	sub eax,ecx
+	mov aux, eax
+	mov eax, b
+	mov a, eax
+	mov eax, aux
+	mov b, eax
+	jmp debut_while_1
+sortie_while_1:
+	mov eax, a
+	out eax
+CODE ENDS
+```
+
+##Exemple 3: un compteur
+
+Programme : compte de b à a avec un pas de c.
+```
+let a = input; // limite du compteur
+let b = 0;
+let c = input; // pas du compteur
+output b;
+while (b < a)
+do (let b = b + c; output b;);
+.
+```
+
+Résultat :
+```
+DATA SEGMENT
+	a DD
+	b DD
+	c DD
+DATA ENDS
+CODE SEGMENT
+	in eax
+	mov a, eax
+	mov eax, 0
+	mov b, eax
+	in eax
+	mov c, eax
+	mov eax, b
+	out eax
+debut_while_1:
+	mov eax, b
+	push eax
+	mov eax, a
+	pop ebx
+	sub eax, ebx
+	jle faux_gt_1
+	mov eax, 1
+	jmp sortie_gt_1
+faux_gt_1:
+	mov eax, 0
+sortie_gt_1:
+	jz sortie_while_1
+	mov eax, b
+	push eax
+	mov eax, c
+	pop ebx
+	add eax, ebx
+	mov b, eax
+	mov eax, b
+	out eax
+	jmp debut_while_1
+sortie_while_1:
+CODE ENDS
+```
+
+##Exemple 4: calcul d'un pourcentage
+
+Programme : calcul le pourcentage de a par rapport à b.
+
+```
+let v = input; // valeur
+let t = input; /* sur total */
+let p = (100 * v) / t;
+output p;
+.
+```
+
+Résultat :
+```
+DATA SEGMENT
+	v DD
+	t DD
+	p DD
+DATA ENDS
+CODE SEGMENT
+	in eax
+	mov v, eax
+	in eax
+	mov t, eax
+	mov eax, 100
+	push eax
+	mov eax, v
+	pop ebx
+	mul eax, ebx
+	push eax
+	mov eax, t
+	pop ebx
+	div ebx, eax
+	mov eax, ebx
+	mov p, eax
+	mov eax, p
+	out eax
+CODE ENDS
+```
+
